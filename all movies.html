@@ -1,0 +1,10 @@
+<h1>{{.PageTitle}}</h1>
+    <ul>
+    {{range .movies}}
+    {{if true}}
+        <li class="done">{{.Name}}</li>
+    {{else}}
+        <li>{{.Name}}</li>
+    {{end}}
+    {{end}}
+    </ul>

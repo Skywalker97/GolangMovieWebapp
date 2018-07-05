@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"html/template"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -11,10 +12,19 @@ import (
 	. "MonGo/config"
 	. "MonGo/models"
 	. "MonGo/dao"
+	"fmt"
 )
 
 var config = Config{}
 var dao = MoviesDAO{}
+
+type MovieData struct{
+	PageTitle string
+	movies []Movie
+	l int
+}
+
+
 
 // GET list of movies
 func AllMoviesEndPoint(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +33,14 @@ func AllMoviesEndPoint(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	respondWithJson(w, http.StatusOK, movies)
+	tmp := template.Must(template.ParseFiles("all movies.html"))
+	data := MovieData{
+		"Movies", movies, len(movies),
+	}
+
+	tmp.Execute(w, data)
+	fmt.Print(movies)
+	//respondWithJson(w, http.StatusOK, movies)
 }
 
 // GET a movie by its ID
@@ -106,12 +123,12 @@ func init() {
 // Define HTTP request routes
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/movies", AllMoviesEndPoint).Methods("GET")
-	r.HandleFunc("/movies", CreateMovieEndPoint).Methods("POST")
+	r.HandleFunc("/movies/all", AllMoviesEndPoint).Methods("GET")
+	r.HandleFunc("/movies/create", CreateMovieEndPoint).Methods("POST")
 	r.HandleFunc("/movies", UpdateMovieEndPoint).Methods("PUT")
 	r.HandleFunc("/movies", DeleteMovieEndPoint).Methods("DELETE")
 	r.HandleFunc("/movies/{id}", FindMovieEndpoint).Methods("GET")
-	if err := http.ListenAndServe(":3000", r); err != nil {
+	if err := http.ListenAndServe(":3001", r); err != nil {
 		log.Fatal(err)
 	}
 }
